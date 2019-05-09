@@ -1,0 +1,15 @@
+
+services:
+    _defaults:
+        autowire: true
+        autoconfigure: true
+        public: true
+
+    SoapBundle\Service\AccessGuard:
+        class: SoapBundle\Service\AccessGuard
+
+    SoapBundle\Model\AccessRepository:
+        class: SoapBundle\Model\AccessRepository
+
+    SoapBundle\Service\RequestLoggerService:
+        class: SoapBundle\Service\RequestLoggerService
