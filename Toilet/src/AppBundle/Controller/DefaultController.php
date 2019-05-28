@@ -75,19 +75,15 @@ class DefaultController extends Controller
         $response['detail'] = [
             'id' => $toilet->getId(),
             'name' => $toilet->getName(),
-            'stan' => $toilet->getStan(),
-            'date_of_light' => $toilet->getDateOfLight() == null ? null : $toilet->getDateOfLight()->format('Y-m-d H:i:s')
+            'stan' => $toilet->getStan()
         ];
         $response['reservations'] = [];
 
         if( count($reservations) > 0 ) {
             $reservation = $reservations[0];
 
-            $lightOn = $toilet->getDateOfLight() !== null;
-            $lightTime = $lightOn ? $now->getTimestamp() - $toilet->getDateOfLight()->getTimestamp() : 5 * 60;
-
             // Pierwszy element powinien otrzymać szanse akceptacji jeżeli światło się nie pali bądź pali się powyżej 5 minut
-            if ($reservation->getDateOfGive() == null && (!$lightOn || ($lightOn && $lightTime >= 5 * 60)) ) {
+            if ($reservation->getDateOfGive() == null ) {
                 $reservation->setDateOfGive(new \DateTime());
 
                 $em = $this->getDoctrine()->getManager();
@@ -97,7 +93,7 @@ class DefaultController extends Controller
         }
 
         /** @var Entity\ToiletReservation $reservation */
-        foreach($reservations as $reservation) {
+        foreach($reservations as $key => $reservation) {
             $dateOfGive = $reservation->getDateOfGive();
 
             if( $dateOfGive == null ) {
@@ -109,7 +105,7 @@ class DefaultController extends Controller
             if( $reservation->getDateOfAccept() === null && $reservation->getDateOfGive() !== null ) {
 
                 // Jeżeli mineło ponad 2 minuty to go usuńmy..
-                if( $now->getTimestamp() - $reservation->getDateOfGive()->getTimestamp() >= 15 * 60 ) {
+                if( $now->getTimestamp() - 30 >= $reservation->getDateOfGive()->getTimestamp() ) {
 
                     $em = $this->getDoctrine()->getManager();
                     $em->remove($reservation);
@@ -121,8 +117,8 @@ class DefaultController extends Controller
 
             if( $reservation->getDateOfAccept() !== null ) {
 
-                // Jeżeli mineło ponad 10 minut to go usuńmy..
-                if( $now->getTimestamp() - $reservation->getDateOfAccept()->getTimestamp() >= 20 * 60 ) {
+                // Jeżeli mineło ponad 40 sekund to go usuńmy..
+                if( $now->getTimestamp() - 20 >= $reservation->getDateOfAccept()->getTimestamp() - 3600 * 2 ) {
 
                     $em = $this->getDoctrine()->getManager();
                     $em->remove($reservation);
@@ -186,6 +182,21 @@ class DefaultController extends Controller
         $em->flush();
 
         return new JsonResponse(["OK"]);
+    }
+
+    /**
+     * @param string $toiletHash
+     * @param Request $request
+     *
+     * @Route("/unregister-by-hash/{toiletHash}", name="unregister_by_hash")
+     */
+    public function unregisterByHashAction(string $toiletHash,  Request $request)
+    {
+        $repository = $this->getDoctrine()->getManager()->getRepository(Entity\Toilet::class);
+
+        /** @var Entity\Toilet $toilet */
+        $toilet = $repository->findOneBy(['androidHash' => $toiletHash]);
+        return $this->unregisterAction($toilet, $toiletHash, $request);
     }
 
     /**
@@ -280,6 +291,7 @@ class DefaultController extends Controller
             $date = null;
         }
 
+        $this->removeReservation($toilet);
         $toilet->setDateOfLight($date);
 
         $em = $this->getDoctrine()->getManager();
@@ -287,5 +299,27 @@ class DefaultController extends Controller
         $em->flush();
 
         return new JsonResponse(["OK"]);
+    }
+
+    private function removeReservation(Entity\Toilet $toilet)
+    {
+        $now = new \DateTime();
+
+        /** @var Entity\ToiletReservation[] $reservations */
+        $reservations = $toilet->getReservations();
+
+        /** @var Entity\ToiletReservation $reservation */
+        foreach($reservations as $key => $reservation) {
+            if( $reservation->getDateOfAccept() !== null ) {
+
+                // Jeżeli mineło ponad 10 minut to go usuńmy..
+                if( $now->getTimestamp() - $reservation->getDateOfAccept()->getTimestamp() >= 40 ) {
+
+                    $em = $this->getDoctrine()->getManager();
+                    $em->remove($reservation);
+                    $em->flush();
+                }
+            }
+        }
     }
 }

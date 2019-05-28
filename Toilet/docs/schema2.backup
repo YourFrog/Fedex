@@ -1,0 +1,146 @@
+--
+-- PostgreSQL database dump
+--
+
+-- Dumped from database version 9.6.2
+-- Dumped by pg_dump version 9.6.2
+
+-- Started on 2019-05-23 00:13:09
+
+SET statement_timeout = 0;
+SET lock_timeout = 0;
+SET idle_in_transaction_session_timeout = 0;
+SET client_encoding = 'UTF8';
+SET standard_conforming_strings = on;
+SET check_function_bodies = false;
+SET client_min_messages = warning;
+SET row_security = off;
+
+--
+-- TOC entry 1 (class 3079 OID 12387)
+-- Name: plpgsql; Type: EXTENSION; Schema: -; Owner: 
+--
+
+CREATE EXTENSION IF NOT EXISTS plpgsql WITH SCHEMA pg_catalog;
+
+
+--
+-- TOC entry 2138 (class 0 OID 0)
+-- Dependencies: 1
+-- Name: EXTENSION plpgsql; Type: COMMENT; Schema: -; Owner: 
+--
+
+COMMENT ON EXTENSION plpgsql IS 'PL/pgSQL procedural language';
+
+
+SET search_path = public, pg_catalog;
+
+SET default_tablespace = '';
+
+SET default_with_oids = false;
+
+--
+-- TOC entry 186 (class 1259 OID 84336)
+-- Name: toilet; Type: TABLE; Schema: public; Owner: postgres
+--
+
+CREATE TABLE toilet (
+    id integer NOT NULL,
+    name text NOT NULL,
+    status text NOT NULL,
+    stan text,
+    date_of_light timestamp with time zone,
+    android_hash text
+);
+
+
+ALTER TABLE toilet OWNER TO postgres;
+
+--
+-- TOC entry 185 (class 1259 OID 84334)
+-- Name: toilet_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
+--
+
+CREATE SEQUENCE toilet_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE toilet_id_seq OWNER TO postgres;
+
+--
+-- TOC entry 2139 (class 0 OID 0)
+-- Dependencies: 185
+-- Name: toilet_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
+--
+
+ALTER SEQUENCE toilet_id_seq OWNED BY toilet.id;
+
+
+--
+-- TOC entry 187 (class 1259 OID 84345)
+-- Name: toilet_reservation; Type: TABLE; Schema: public; Owner: postgres
+--
+
+CREATE TABLE toilet_reservation (
+    id_toilet bigint NOT NULL,
+    client_hash text NOT NULL,
+    added timestamp with time zone,
+    date_of_give timestamp with time zone,
+    date_of_accept timestamp with time zone
+);
+
+
+ALTER TABLE toilet_reservation OWNER TO postgres;
+
+--
+-- TOC entry 2007 (class 2604 OID 84339)
+-- Name: toilet id; Type: DEFAULT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY toilet ALTER COLUMN id SET DEFAULT nextval('toilet_id_seq'::regclass);
+
+
+--
+-- TOC entry 2130 (class 0 OID 84336)
+-- Dependencies: 186
+-- Data for Name: toilet; Type: TABLE DATA; Schema: public; Owner: postgres
+--
+
+COPY toilet (id, name, status, stan, date_of_light, android_hash) FROM stdin;
+3	Toaleta 2	wolna	brudna	2019-05-09 00:26:49.405371+02	\N
+2	Toaleta One Plus	wolna	czysta	2019-05-10 16:07:07+02	69375a3275cccb44
+4	Toaleta 3	wolna	brudna	2019-05-10 13:26:49.405371+02	\N
+\.
+
+
+--
+-- TOC entry 2140 (class 0 OID 0)
+-- Dependencies: 185
+-- Name: toilet_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
+--
+
+SELECT pg_catalog.setval('toilet_id_seq', 3, true);
+
+
+--
+-- TOC entry 2131 (class 0 OID 84345)
+-- Dependencies: 187
+-- Data for Name: toilet_reservation; Type: TABLE DATA; Schema: public; Owner: postgres
+--
+
+COPY toilet_reservation (id_toilet, client_hash, added, date_of_give, date_of_accept) FROM stdin;
+3	unremove	2019-05-10 10:47:16+02	2019-05-10 10:47:17+02	\N
+4	69375a3275cccb44	2019-05-10 14:17:43+02	\N	\N
+\.
+
+
+-- Completed on 2019-05-23 00:13:09
+
+--
+-- PostgreSQL database dump complete
+--
+
