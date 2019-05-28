@@ -118,7 +118,7 @@ class DefaultController extends Controller
             if( $reservation->getDateOfAccept() !== null ) {
 
                 // Jeżeli mineło ponad 40 sekund to go usuńmy..
-                if( $now->getTimestamp() - 20 >= $reservation->getDateOfAccept()->getTimestamp() - 3600 * 2 ) {
+                if( $now->getTimestamp() - 10 * 60 >= $reservation->getDateOfAccept()->getTimestamp() - 3600 * 2 ) {
 
                     $em = $this->getDoctrine()->getManager();
                     $em->remove($reservation);
