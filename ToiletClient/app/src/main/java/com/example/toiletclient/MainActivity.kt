@@ -15,7 +15,7 @@ import java.util.*
 class MainActivity : AppCompatActivity()
 {
     companion object {
-        val BASE_URI = "http://192.168.0.157/Toilet/web/app_dev.php/"
+        val BASE_URI = "http://yourfrog12.usermd.net/toilet/web/"
     }
 
     val timer  = Timer()
@@ -33,7 +33,7 @@ class MainActivity : AppCompatActivity()
                     }
                 })
             }
-        }, 0, 15000)
+        }, 0, 5000)
 
 
         title = "Lista toalet"
@@ -64,10 +64,6 @@ class MainActivity : AppCompatActivity()
                         val toiletList = findViewById<ListView>(R.id.toiletList)
                         toiletList.adapter = ToiletList(this, toiletListJson.getJSONArray("toilets"))
                         (toiletList.adapter as ToiletList).notifyDataSetChanged()
-
-                        activity.runOnUiThread {
-                            Toast.makeText(baseContext, "Odświeżono listę", Toast.LENGTH_SHORT).show()
-                        }
                     }
                 }
             }

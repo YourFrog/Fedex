@@ -4,16 +4,13 @@ import android.support.v7.app.AppCompatActivity
 import android.os.Bundle
 import android.provider.Settings
 import android.view.View
-import android.widget.Button
-import android.widget.TextView
-import android.widget.Toast
 import com.github.kittinunf.fuel.httpGet
 import com.github.kittinunf.fuel.json.responseJson
 import android.os.VibrationEffect
 import android.os.Build
 import android.content.Context.VIBRATOR_SERVICE
 import android.os.Vibrator
-import android.widget.ImageView
+import android.widget.*
 import java.util.*
 
 
@@ -28,11 +25,21 @@ class ToiletDetails : AppCompatActivity() {
         Settings.Secure.getString(baseContext.getContentResolver(), Settings.Secure.ANDROID_ID)
     }
 
+    val spinner: FrameLayout by lazy {
+        findViewById<FrameLayout>(R.id.progressBarHolder);
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_toilet_details)
 
         val activity = this
+        spinner.visibility = View.VISIBLE
+
+        runOnUiThread {
+            activity.reloadDetails(true)
+        }
+
         timer.scheduleAtFixedRate(object: TimerTask() {
             override fun run() {
                 runOnUiThread(object : Runnable {
@@ -41,7 +48,7 @@ class ToiletDetails : AppCompatActivity() {
                     }
                 })
             }
-        }, 0, 15000)
+        }, 5000, 5000)
 
         activity.findViewById<Button>(R.id.reservationButton).setOnClickListener {
             runOnUiThread {
@@ -53,7 +60,10 @@ class ToiletDetails : AppCompatActivity() {
                             Toast.makeText(baseContext, "Problem z zapisaniem", Toast.LENGTH_SHORT).show()
                         }
                     } else {
-                        reloadDetails()
+                        runOnUiThread {
+                            spinner.visibility = View.VISIBLE
+                            reloadDetails(true)
+                        }
                     }
                 }
             }
@@ -69,7 +79,10 @@ class ToiletDetails : AppCompatActivity() {
                             Toast.makeText(baseContext, "Problem z zapisaniem", Toast.LENGTH_SHORT).show()
                         }
                     } else {
-                        reloadDetails()
+                        runOnUiThread {
+                            spinner.visibility = View.VISIBLE
+                            reloadDetails(true)
+                        }
                     }
                 }
             }
@@ -86,7 +99,8 @@ class ToiletDetails : AppCompatActivity() {
                         }
                     } else {
                         runOnUiThread {
-                            reloadDetails()
+                            spinner.visibility = View.VISIBLE
+                            reloadDetails(true)
                         }
                     }
                 }
@@ -104,7 +118,8 @@ class ToiletDetails : AppCompatActivity() {
                         }
                     } else {
                         runOnUiThread {
-                            reloadDetails()
+                            spinner.visibility = View.VISIBLE
+                            reloadDetails(true)
                         }
                     }
                 }
@@ -122,7 +137,8 @@ class ToiletDetails : AppCompatActivity() {
                         }
                     } else {
                         runOnUiThread {
-                            reloadDetails()
+                            spinner.visibility = View.VISIBLE
+                            reloadDetails(true)
                         }
                     }
                 }
@@ -136,70 +152,76 @@ class ToiletDetails : AppCompatActivity() {
         timer.cancel()
     }
 
-    private fun reloadDetails()
+    private fun reloadDetails(spinnerChange: Boolean = false)
     {
-        val uri = MainActivity.BASE_URI + "details/" + toiletID
+        runOnUiThread {
+            val uri = MainActivity.BASE_URI + "details/" + toiletID
 
-        val activity = this
-        uri.httpGet().responseJson { request, response, result ->
-            runOnUiThread {
-                if (response.statusCode != 200) {
-                    activity.runOnUiThread {
-                        Toast.makeText(baseContext, "Problem z pobraniem listy ", Toast.LENGTH_SHORT).show()
-                    }
-                } else {
-                    val details =  result.get().obj().getJSONObject("detail")
-                    val reservations = result.get().obj().getJSONArray("reservations")
-
-                    activity.title = details.getString("name")
-                    activity.findViewById<TextView>(R.id.light).text = "Światło zapalone od " + details.getString("date_of_light")
-
-                    if( reservations.length() == 0 ) {
-                        activity.findViewById<TextView>(R.id.queue).text = "Brak osób w kolejce"
+            val activity = this
+            uri.httpGet().responseJson { request, response, result ->
+                runOnUiThread {
+                    if (response.statusCode != 200) {
+                        activity.runOnUiThread {
+                            Toast.makeText(baseContext, "Problem z pobraniem listy ", Toast.LENGTH_SHORT).show()
+                        }
                     } else {
-                        activity.findViewById<TextView>(R.id.queue).text = "W kolejce " + reservations.length() + " świnki"
-                    }
+                        val details = result.get().obj().getJSONObject("detail")
+                        val reservations = result.get().obj().getJSONArray("reservations")
 
+                        activity.title = details.getString("name")
 
-                    if( details.getString("stan").equals("brudna")) {
-                        activity.findViewById<ImageView>(R.id.pigImage).setImageResource(R.drawable.pig)
+                        if (reservations.length() == 0) {
+                            activity.findViewById<TextView>(R.id.queue).text = "Brak osób w kolejce"
+                        } else {
+                            activity.findViewById<TextView>(R.id.queue).text =
+                                "W kolejce " + reservations.length() + " świnki"
+                        }
 
-                        activity.findViewById<Button>(R.id.dirtButton).visibility = View.GONE
-                        activity.findViewById<Button>(R.id.cleanButton).visibility = View.VISIBLE
-                    } else {
-                        activity.findViewById<ImageView>(R.id.pigImage).setImageResource(R.drawable.pig_clean)
+                        activity.findViewById<TextView>(R.id.pigText).text = "Toaleta jest " + details.getString("stan")
+                        if (details.getString("stan").equals("brudna")) {
+                            activity.findViewById<ImageView>(R.id.pigImage).setImageResource(R.drawable.pig)
 
-                        activity.findViewById<Button>(R.id.dirtButton).visibility = View.VISIBLE
-                        activity.findViewById<Button>(R.id.cleanButton).visibility = View.GONE
-                    }
+                            activity.findViewById<Button>(R.id.dirtButton).visibility = View.GONE
+                            activity.findViewById<Button>(R.id.cleanButton).visibility = View.VISIBLE
+                        } else {
+                            activity.findViewById<ImageView>(R.id.pigImage).setImageResource(R.drawable.pig_clean)
 
-                    activity.findViewById<Button>(R.id.acceptButton).visibility = View.GONE
+                            activity.findViewById<Button>(R.id.dirtButton).visibility = View.VISIBLE
+                            activity.findViewById<Button>(R.id.cleanButton).visibility = View.GONE
+                        }
 
-                    var inQueue = false
-                    for(i in 0 .. reservations.length() - 1) {
-                        val reservation = reservations.getJSONObject(i)
+                        activity.findViewById<Button>(R.id.acceptButton).visibility = View.GONE
 
-                        if( reservation.getString("client_hash").equals(androidID) ) {
-                            inQueue = true
+                        var inQueue = false
+                        for (i in 0..reservations.length() - 1) {
+                            val reservation = reservations.getJSONObject(i)
 
-                            if( i == 0 ) {
-                                activity.findViewById<TextView>(R.id.queue).text = "Twoja kolej"
+                            if (reservation.getString("client_hash").equals(androidID)) {
+                                inQueue = true
 
-                                if( reservation.getString("date_of_accept").equals("null") ) {
-                                    vibrate()
-                                    activity.findViewById<Button>(R.id.acceptButton).visibility = View.VISIBLE
+                                if (i == 0) {
+                                    activity.findViewById<TextView>(R.id.queue).text = "Twoja kolej"
 
+                                    if (reservation.getString("date_of_accept").equals("null") ) {
+                                        vibrate()
+                                        activity.findViewById<Button>(R.id.acceptButton).visibility = View.VISIBLE
+
+                                    }
                                 }
                             }
                         }
+
+                        if (inQueue) {
+                            activity.findViewById<Button>(R.id.reservationButton).visibility = View.GONE
+                            activity.findViewById<Button>(R.id.goOutButton).visibility = View.VISIBLE
+                        } else {
+                            activity.findViewById<Button>(R.id.reservationButton).visibility = View.VISIBLE
+                            activity.findViewById<Button>(R.id.goOutButton).visibility = View.GONE
+                        }
                     }
 
-                    if( inQueue ) {
-                        activity.findViewById<Button>(R.id.reservationButton).visibility = View.GONE
-                        activity.findViewById<Button>(R.id.goOutButton).visibility = View.VISIBLE
-                    } else {
-                        activity.findViewById<Button>(R.id.reservationButton).visibility = View.VISIBLE
-                        activity.findViewById<Button>(R.id.goOutButton).visibility = View.GONE
+                    if (spinnerChange) {
+                        spinner.visibility = View.GONE
                     }
                 }
             }
