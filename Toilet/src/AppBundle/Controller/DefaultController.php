@@ -78,7 +78,8 @@ class DefaultController extends Controller
             'stan' => $toilet->getStan()
         ];
         $response['reservations'] = [];
-
+        $isFirst = false;
+      
         if( count($reservations) > 0 ) {
             $reservation = $reservations[0];
 
@@ -89,8 +90,11 @@ class DefaultController extends Controller
                 $em = $this->getDoctrine()->getManager();
                 $em->persist($reservation);
                 $em->flush();
+              
+                $isFirst = true;
             }
         }
+      
 
         /** @var Entity\ToiletReservation $reservation */
         foreach($reservations as $key => $reservation) {
@@ -105,8 +109,11 @@ class DefaultController extends Controller
             if( $reservation->getDateOfAccept() === null && $reservation->getDateOfGive() !== null ) {
 
                 // Jeżeli mineło ponad 2 minuty to go usuńmy..
-                if( $now->getTimestamp() - 30 >= $reservation->getDateOfGive()->getTimestamp() ) {
+                if( !$isFirst && ($now->getTimestamp() - 30 >= $reservation->getDateOfGive()->getTimestamp() - 3600 * 2) ) {
 
+       //       var_dump($reservation->getDateOfGive(), $reservation->getDateOfAccept());
+     // var_dump($now->getTimestamp(), $reservation->getDateOfGive()->getTimestamp() - 3600 * 2);
+     // var_dump($now->getTimestamp() - 30 >= $reservation->getDateOfGive()->getTimestamp() - 3600 * 2); die();
                     $em = $this->getDoctrine()->getManager();
                     $em->remove($reservation);
                     $em->flush();
@@ -117,8 +124,8 @@ class DefaultController extends Controller
 
             if( $reservation->getDateOfAccept() !== null ) {
 
-                // Jeżeli mineło ponad 40 sekund to go usuńmy..
-                if( $now->getTimestamp() - 20 >= $reservation->getDateOfAccept()->getTimestamp() - 3600 * 2 ) {
+                // Jeżeli mineło ponad 10 minut to go usuńmy..
+                if( $now->getTimestamp() - 10 * 60 >= $reservation->getDateOfAccept()->getTimestamp() - 3600 * 2 ) {
 
                     $em = $this->getDoctrine()->getManager();
                     $em->remove($reservation);
@@ -139,6 +146,8 @@ class DefaultController extends Controller
 
         return new JsonResponse($response);
     }
+  
+    
     /**
      * @param Request $request
      *
