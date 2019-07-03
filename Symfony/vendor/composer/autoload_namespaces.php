@@ -6,6 +6,7 @@ $vendorDir = dirname(dirname(__FILE__));
 $baseDir = dirname($vendorDir);
 
 return array(
+    'WhiteOctober\\SwiftMailerDBBundle' => array($vendorDir . '/whiteoctober/swiftmailerdbbundle'),
     'Twig_' => array($vendorDir . '/twig/twig/lib'),
     'SensioLabs\\Security' => array($vendorDir . '/sensiolabs/security-checker'),
     'Prophecy\\' => array($vendorDir . '/phpspec/prophecy/src'),

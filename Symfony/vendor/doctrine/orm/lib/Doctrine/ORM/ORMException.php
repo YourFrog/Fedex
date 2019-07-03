@@ -98,6 +98,9 @@ class ORMException extends Exception
      */
     public static function unrecognizedField($field)
     {
+        var_dump(debug_backtrace());
+        var_dump($field);
+        die('zzzz');
         return new self("Unrecognized field: $field");
     }
 

@@ -12,7 +12,7 @@ use Doctrine\ORM\Mapping as ORM;
 
 /**
  * @ORM\Entity
- * @ORM\Table(name="app_user")
+ * @ORM\Table(schema="security", name="app_user")
  */
 class User extends BaseUser
 {

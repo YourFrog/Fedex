@@ -16,36 +16,46 @@
     <div class="container">
         <div class="row">
             <div class="col-12">
-                asd
+                <a href="{{ path('homepage') }}">Stronga główna</a>
             </div>
         </div>
         <div class="row mt-5">
             <div class="col-2">
-                <form action="{{ path("fos_user_security_check") }}" method="POST">
-                    <input type="hidden" name="_csrf_token" value="{{ csrf_token('authenticate') }}" />
-
+                {% if is_granted('IS_AUTHENTICATED_REMEMBERED') %}
                     <div class="row">
-                        Login
+                        <a href="{{ path('fos_user_security_logout') }}">Logout</a>
                     </div>
-                    <div class="row mt-2">
-                        <input type="text" class="form-control" placeholder="{{ 'security.login.username'|trans }}" id="username" name="_username" value="" required="required" />
-                    </div>
+                {% else %}
+                    <form action="{{ path("fos_user_security_check") }}" method="POST">
+                        <input type="hidden" name="_csrf_token" value="{{ csrf_token('authenticate') }}" />
 
-                    <div class="row mt-3">
-                        Password
-                    </div>
-                    <div class="row mt-2">
-                        <input type="password" class="form-control" placeholder="{{ 'security.login.password'|trans }}" id="password" name="_password" required="required" />
-                    </div>
+                        <div class="row">
+                            Login
+                        </div>
+                        <div class="row mt-2">
+                            <input type="text" class="form-control" placeholder="{{ 'security.login.username'|trans }}" id="username" name="_username" value="" required="required" />
+                        </div>
 
-                    <div class="row mt-2">
-                        <input class="btn btn-primary submit float-right ml-auto" type="submit" id="_submit" name="_submit" value="{{ 'security.login.submit'|trans }}" />
-                    </div>
+                        <div class="row mt-3">
+                            Password
+                        </div>
+                        <div class="row mt-2">
+                            <input type="password" class="form-control" placeholder="{{ 'security.login.password'|trans }}" id="password" name="_password" required="required" />
+                        </div>
 
-                    <div class="row">
-                        <a href="{{ path('fos_user_registration_register') }}">Create Account</a>
-                    </div>
-                </form>
+                        <div class="row mt-2">
+                            <input class="btn btn-primary submit float-right ml-auto" type="submit" id="_submit" name="_submit" value="{{ 'security.login.submit'|trans }}" />
+                        </div>
+
+                        <div class="row">
+                            <a href="{{ path('fos_user_registration_register') }}">Create Account</a>
+                        </div>
+
+                        <div class="row">
+                            <a href="{{ path('fos_user_resetting_request') }}">Forgot Password</a>
+                        </div>
+                    </form>
+               {% endif %}
             </div>
 
             <div class="col-10">
