@@ -26,6 +26,7 @@ class IndexController extends Controller
             $error = $request->attributes->get(Security::AUTHENTICATION_ERROR);
         } elseif (null !== $session && $session->has(Security::AUTHENTICATION_ERROR)) {
             $error = $session->get(Security::AUTHENTICATION_ERROR);
+            $session->remove(Security::AUTHENTICATION_ERROR);
         } else {
             $error = '';
         }

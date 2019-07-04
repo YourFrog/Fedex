@@ -36,8 +36,8 @@ final class Utils
         $bitmask = 0;
 
         foreach ($options as $optionName) {
-            if (defined($optionName)) {
-                $bitmask |= constant($optionName);
+            if (\defined($optionName)) {
+                $bitmask |= \constant($optionName);
             }
         }
 
@@ -53,7 +53,7 @@ final class Utils
      */
     public static function camelCaseToUnderscore($string)
     {
-        return preg_replace_callback(
+        return Preg::replaceCallback(
             '/(^|[a-z0-9])([A-Z])/',
             static function (array $matches) {
                 return strtolower('' !== $matches[1] ? $matches[1].'_'.$matches[2] : $matches[2]);
@@ -80,25 +80,6 @@ final class Utils
         }
 
         return $a < $b ? -1 : 1;
-    }
-
-    /**
-     * Split a multi-line string up into an array of strings.
-     *
-     * We're retaining a newline character at the end of non-blank lines, and
-     * discarding other lines, so this function is unsuitable for anyone for
-     * wishing to retain the exact number of line endings. If a single-line
-     * string is passed, we'll just return an array with a element.
-     *
-     * @param string $content
-     *
-     * @return string[]
-     */
-    public static function splitLines($content)
-    {
-        preg_match_all("/[^\n\r]+[\r\n]*/", $content, $matches);
-
-        return $matches[0];
     }
 
     /**
@@ -177,7 +158,7 @@ final class Utils
                 return $fixer->getPriority();
             },
             static function ($a, $b) {
-                return Utils::cmpInt($b, $a);
+                return self::cmpInt($b, $a);
             }
         );
     }

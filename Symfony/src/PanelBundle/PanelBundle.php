@@ -1,6 +1,6 @@
 <?php
 
-namespace AppBundle;
+namespace PanelBundle;
 
 use Symfony\Component\HttpKernel\Bundle\Bundle;
 

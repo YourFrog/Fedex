@@ -21,11 +21,7 @@
         </div>
         <div class="row mt-5">
             <div class="col-2">
-                {% if is_granted('IS_AUTHENTICATED_REMEMBERED') %}
-                    <div class="row">
-                        <a href="{{ path('fos_user_security_logout') }}">Logout</a>
-                    </div>
-                {% else %}
+                {% if not is_granted('IS_AUTHENTICATED_REMEMBERED') %}
                     <form action="{{ path("fos_user_security_check") }}" method="POST">
                         <input type="hidden" name="_csrf_token" value="{{ csrf_token('authenticate') }}" />
 
@@ -56,6 +52,26 @@
                         </div>
                     </form>
                {% endif %}
+
+                {% if is_granted('IS_AUTHENTICATED_REMEMBERED') %}
+                    <div class="row">
+                        <div class="col-12 pl-0">
+                            <h3>Menu</h3>
+                        </div>
+
+                        <ul class="nav flex-column">
+                            <li class="nav-item">
+                                <a href="{{ path('fos_user_security_logout') }}">Logout</a>
+                            </li>
+
+                            <li>
+                                {% if is_granted('ROLE_ADMIN') %}
+                                    <a href="{{ path('panel_dashboard') }}">Panel</a>
+                                {% endif %}
+                            </li>
+                        </ul>
+                    </div>
+                {% endif %}
             </div>
 
             <div class="col-10">
@@ -67,8 +83,6 @@
         </div>
     </div>
 
-
-    <!-- jQuery first, then Popper.js, then Bootstrap JS -->
     <script src="{{ asset('assets/website/js/jquery.min.js') }}"></script>
     <script src="{{ asset('assets/website/js/popper.min.js') }}"></script>
     <script src="{{ asset('assets/website/bootstrap/js/bootstrap.min.js') }}"></script>

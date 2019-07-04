@@ -25,7 +25,7 @@ use Symfony\Component\Cache\ResettableInterface;
 class TraceableAdapter implements AdapterInterface, PruneableInterface, ResettableInterface
 {
     protected $pool;
-    private $calls = array();
+    private $calls = [];
 
     public function __construct(AdapterInterface $pool)
     {
@@ -107,7 +107,7 @@ class TraceableAdapter implements AdapterInterface, PruneableInterface, Resettab
     /**
      * {@inheritdoc}
      */
-    public function getItems(array $keys = array())
+    public function getItems(array $keys = [])
     {
         $event = $this->start(__FUNCTION__);
         try {
@@ -116,7 +116,7 @@ class TraceableAdapter implements AdapterInterface, PruneableInterface, Resettab
             $event->end = microtime(true);
         }
         $f = function () use ($result, $event) {
-            $event->result = array();
+            $event->result = [];
             foreach ($result as $key => $item) {
                 if ($event->result[$key] = $item->isHit()) {
                     ++$event->hits;
@@ -204,11 +204,12 @@ class TraceableAdapter implements AdapterInterface, PruneableInterface, Resettab
 
     public function getCalls()
     {
-        try {
-            return $this->calls;
-        } finally {
-            $this->calls = array();
-        }
+        return $this->calls;
+    }
+
+    public function clearCalls()
+    {
+        $this->calls = [];
     }
 
     protected function start($name)

@@ -12,6 +12,7 @@
 
 namespace PhpCsFixer\Report;
 
+use PhpCsFixer\Preg;
 use Symfony\Component\Console\Formatter\OutputFormatter;
 
 /**
@@ -34,7 +35,7 @@ final class JunitReporter implements ReporterInterface
      */
     public function generate(ReportSummary $reportSummary)
     {
-        if (!extension_loaded('dom')) {
+        if (!\extension_loaded('dom')) {
             throw new \RuntimeException('Cannot generate report! `ext-dom` is not available!');
         }
 
@@ -44,7 +45,7 @@ final class JunitReporter implements ReporterInterface
         $testsuite = $testsuites->appendChild($dom->createElement('testsuite'));
         $testsuite->setAttribute('name', 'PHP CS Fixer');
 
-        if (count($reportSummary->getChanged())) {
+        if (\count($reportSummary->getChanged())) {
             $this->createFailedTestCases($dom, $testsuite, $reportSummary);
         } else {
             $this->createSuccessTestCase($dom, $testsuite);
@@ -97,7 +98,7 @@ final class JunitReporter implements ReporterInterface
             $assertionsCount += (int) $testcase->getAttribute('assertions');
         }
 
-        $testsuite->setAttribute('tests', (string) count($reportSummary->getChanged()));
+        $testsuite->setAttribute('tests', (string) \count($reportSummary->getChanged()));
         $testsuite->setAttribute('assertions', (string) $assertionsCount);
         $testsuite->setAttribute('failures', (string) $assertionsCount);
         $testsuite->setAttribute('errors', '0');
@@ -113,9 +114,9 @@ final class JunitReporter implements ReporterInterface
      */
     private function createFailedTestCase(\DOMDocument $dom, $file, array $fixResult, $shouldAddAppliedFixers)
     {
-        $appliedFixersCount = count($fixResult['appliedFixers']);
+        $appliedFixersCount = \count($fixResult['appliedFixers']);
 
-        $testName = str_replace('.', '_DOT_', preg_replace('@\.'.pathinfo($file, PATHINFO_EXTENSION).'$@', '', $file));
+        $testName = str_replace('.', '_DOT_', Preg::replace('@\.'.pathinfo($file, PATHINFO_EXTENSION).'$@', '', $file));
 
         $testcase = $dom->createElement('testcase');
         $testcase->setAttribute('name', $testName);

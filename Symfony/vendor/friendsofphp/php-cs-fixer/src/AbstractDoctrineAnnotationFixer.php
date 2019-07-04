@@ -79,7 +79,7 @@ abstract class AbstractDoctrineAnnotationFixer extends AbstractFixer implements 
                 ->setAllowedTypes(['array'])
                 ->setAllowedValues([static function ($values) {
                     foreach ($values as $value) {
-                        if (!is_string($value)) {
+                        if (!\is_string($value)) {
                             return false;
                         }
                     }
@@ -205,6 +205,10 @@ abstract class AbstractDoctrineAnnotationFixer extends AbstractFixer implements 
     {
         do {
             $index = $tokens->getNextMeaningfulToken($index);
+
+            if (null === $index) {
+                return false;
+            }
         } while ($tokens[$index]->isGivenKind([T_ABSTRACT, T_FINAL]));
 
         if ($tokens[$index]->isClassy()) {

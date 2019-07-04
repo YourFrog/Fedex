@@ -17,7 +17,8 @@
     "type": "project",
     "autoload": {
         "psr-4": {
-            "AppBundle\\": "src/AppBundle"
+            "AppBundle\\": "src/AppBundle",
+            "PanelBundle\\": "src/PanelBundle"
         },
         "classmap": [
             "app/AppKernel.php",
@@ -43,7 +44,8 @@
         "incenteev/composer-parameter-handler": "^2.0",
         "phing/phing": "^2.0",
         "knplabs/knp-menu-bundle": "^2.0",
-        "whiteoctober/swiftmailerdbbundle": "^1.0"
+        "whiteoctober/swiftmailerdbbundle": "^1.0",
+        "friendsofsymfony/message-bundle": "^2.0"
     },
     "require-dev": {
         "sensio/generator-bundle": "^3.0",

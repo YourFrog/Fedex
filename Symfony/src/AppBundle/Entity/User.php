@@ -1,20 +1,19 @@
 <?php
 
-/*
- * For the full copyright and license information, please view the LICENSE file
- * that was distributed with this source code.
- */
-
 namespace AppBundle\Entity;
 
 use FOS\UserBundle\Model\User as BaseUser;
 use Doctrine\ORM\Mapping as ORM;
+use FOS\UserBundle\Model\UserInterface;
+use FOS\MessageBundle\Model\ParticipantInterface;
 
 /**
+ *  Encja opisująca użytkownika
+ *
  * @ORM\Entity
  * @ORM\Table(schema="security", name="app_user")
  */
-class User extends BaseUser
+class User extends BaseUser implements ParticipantInterface
 {
     /**
      * @ORM\Id
@@ -23,9 +22,13 @@ class User extends BaseUser
      */
     protected $id;
 
+    /**
+     *  Konstruktor
+     */
     public function __construct()
     {
         parent::__construct();
-        // your own logic
+
+        $this->roles = [UserInterface::ROLE_DEFAULT];
     }
 }

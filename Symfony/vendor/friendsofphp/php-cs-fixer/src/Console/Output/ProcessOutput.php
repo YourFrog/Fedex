@@ -14,7 +14,7 @@ namespace PhpCsFixer\Console\Output;
 
 use PhpCsFixer\FixerFileProcessedEvent;
 use Symfony\Component\Console\Output\OutputInterface;
-use Symfony\Component\EventDispatcher\EventDispatcher;
+use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 
 /**
  * Output writer to show the process of a FixCommand.
@@ -39,7 +39,7 @@ final class ProcessOutput implements ProcessOutputInterface
     ];
 
     /**
-     * @var EventDispatcher
+     * @var EventDispatcherInterface
      */
     private $eventDispatcher;
 
@@ -66,12 +66,12 @@ final class ProcessOutput implements ProcessOutputInterface
     /**
      * @TODO 3.0 make all parameters mandatory (`null` not allowed)
      *
-     * @param OutputInterface $output
-     * @param EventDispatcher $dispatcher
-     * @param null|int        $width
-     * @param null|int        $nbFiles
+     * @param OutputInterface          $output
+     * @param EventDispatcherInterface $dispatcher
+     * @param null|int                 $width
+     * @param null|int                 $nbFiles
      */
-    public function __construct(OutputInterface $output, EventDispatcher $dispatcher, $width, $nbFiles)
+    public function __construct(OutputInterface $output, EventDispatcherInterface $dispatcher, $width, $nbFiles)
     {
         $this->output = $output;
         $this->eventDispatcher = $dispatcher;
@@ -84,7 +84,7 @@ final class ProcessOutput implements ProcessOutputInterface
             //   max number of characters per line
             // - total length x 2 (e.g. "  1 / 123" => 6 digits and padding spaces)
             // - 11               (extra spaces, parentheses and percentage characters, e.g. " x / x (100%)")
-            $this->symbolsPerLine = max(1, ($width ?: 80) - strlen((string) $this->files) * 2 - 11);
+            $this->symbolsPerLine = max(1, ($width ?: 80) - \strlen((string) $this->files) * 2 - 11);
         }
     }
 
@@ -115,7 +115,7 @@ final class ProcessOutput implements ProcessOutputInterface
 
             if (0 === $symbolsOnCurrentLine || $isLast) {
                 $this->output->write(sprintf(
-                    '%s %'.strlen((string) $this->files).'d / %d (%3d%%)',
+                    '%s %'.\strlen((string) $this->files).'d / %d (%3d%%)',
                     $isLast && 0 !== $symbolsOnCurrentLine ? str_repeat(' ', $this->symbolsPerLine - $symbolsOnCurrentLine) : '',
                     $this->processedFiles,
                     $this->files,

@@ -19,6 +19,7 @@ use PhpCsFixer\FixerConfiguration\FixerConfigurationResolver;
 use PhpCsFixer\FixerConfiguration\FixerOptionBuilder;
 use PhpCsFixer\FixerDefinition\CodeSample;
 use PhpCsFixer\FixerDefinition\FixerDefinition;
+use PhpCsFixer\Preg;
 use PhpCsFixer\Tokenizer\CT;
 use PhpCsFixer\Tokenizer\Token;
 use PhpCsFixer\Tokenizer\Tokens;
@@ -50,7 +51,7 @@ final class BracesFixer extends AbstractFixer implements ConfigurationDefinition
             'The body of each structure MUST be enclosed by braces. Braces should be properly placed. Body of braces should be properly indented.',
             [
                 new CodeSample(
-'<?php
+                    '<?php
 
 class Foo {
     public function bar($baz) {
@@ -78,7 +79,7 @@ class Foo {
 '
                 ),
                 new CodeSample(
-'<?php
+                    '<?php
 $positive = function ($item) { return $item >= 0; };
 $negative = function ($item) {
                 return $item < 0; };
@@ -86,7 +87,7 @@ $negative = function ($item) {
                     ['allow_single_line_closure' => true]
                 ),
                 new CodeSample(
-'<?php
+                    '<?php
 
 class Foo
 {
@@ -125,7 +126,7 @@ class Foo
      */
     public function getPriority()
     {
-        // should be run after the ElseIfFixer, NoEmptyStatementFixer and NoUselessElseFixer
+        // should be run after the ElseIfFixer, LineEndingFixer, NoEmptyStatementFixer and NoUselessElseFixer
         return -25;
     }
 
@@ -234,7 +235,7 @@ class Foo
     {
         $controlContinuationTokens = $this->getControlContinuationTokens();
 
-        for ($index = count($tokens) - 1; 0 <= $index; --$index) {
+        for ($index = \count($tokens) - 1; 0 <= $index; --$index) {
             $token = $tokens[$index];
 
             if (!$token->isGivenKind($controlContinuationTokens)) {
@@ -260,7 +261,7 @@ class Foo
 
     private function fixDoWhile(Tokens $tokens)
     {
-        for ($index = count($tokens) - 1; 0 <= $index; --$index) {
+        for ($index = \count($tokens) - 1; 0 <= $index; --$index) {
             $token = $tokens[$index];
 
             if (!$token->isGivenKind(T_DO)) {
@@ -294,7 +295,7 @@ class Foo
         );
         $tokensAnalyzer = new TokensAnalyzer($tokens);
 
-        for ($index = 0, $limit = count($tokens); $index < $limit; ++$index) {
+        for ($index = 0, $limit = \count($tokens); $index < $limit; ++$index) {
             $token = $tokens[$index];
 
             // if token is not a structure element - continue
@@ -341,6 +342,19 @@ class Foo
                 continue;
             }
 
+            $nextNonWhitespaceIndex = $tokens->getNextNonWhitespace($startBraceIndex, " \t");
+            $nextNonWhitespace = $tokens[$nextNonWhitespaceIndex];
+
+            /* if CLOSE_TAG is after { on the same line, do not indent. e.g. <?php if ($condition) { ?> */
+            if ($nextNonWhitespace->isGivenKind(T_CLOSE_TAG)) {
+                continue;
+            }
+
+            /* if CLOSE_TAG is after { on the next line and a comment on this line, do not indent. e.g. <?php if ($condition) { // \n?> */
+            if ($nextNonWhitespace->isComment() && $tokens[$tokens->getNextMeaningfulToken($nextNonWhitespaceIndex)]->isGivenKind(T_CLOSE_TAG)) {
+                continue;
+            }
+
             $endBraceIndex = $tokens->findBlockEnd(Tokens::BLOCK_TYPE_CURLY_BRACE, $startBraceIndex);
 
             $indent = $this->detectIndent($tokens, $index);
@@ -356,10 +370,9 @@ class Foo
                 $nestToken = $tokens[$nestIndex];
 
                 if ($nestToken->equalsAny([')', [CT::T_BRACE_CLASS_INSTANTIATION_CLOSE]])) {
-                    $nestIndex = $tokens->findBlockEnd(
+                    $nestIndex = $tokens->findBlockStart(
                         $nestToken->equals(')') ? Tokens::BLOCK_TYPE_PARENTHESIS_BRACE : Tokens::BLOCK_TYPE_BRACE_CLASS_INSTANTIATION,
-                        $nestIndex,
-                        false
+                        $nestIndex
                     );
 
                     continue;
@@ -389,7 +402,7 @@ class Foo
 
                         if ($nextLineCanBeIndented || $i === $startBraceIndex) {
                             $nextToken = $tokens[$nestIndex + 1];
-                            $nextLineCanBeIndented = $nextToken->isWhitespace() && 1 === preg_match('/\R/', $nextToken->getContent());
+                            $nextLineCanBeIndented = $nextToken->isWhitespace() && 1 === Preg::match('/\R/', $nextToken->getContent());
                         }
                     }
 
@@ -404,14 +417,16 @@ class Foo
                         // next Token is not a comment on its own line
                         !($nextNonWhitespaceNestToken->isComment() && (
                             !$tokens[$nextNonWhitespaceNestIndex - 1]->isWhitespace()
-                            || !preg_match('/\R/', $tokens[$nextNonWhitespaceNestIndex - 1]->getContent())
+                            || !Preg::match('/\R/', $tokens[$nextNonWhitespaceNestIndex - 1]->getContent())
                         )) &&
                         // and it is not a `$foo = function () {};` situation
                         !($nestToken->equals('}') && $nextNonWhitespaceNestToken->equalsAny([';', ',', ']', [CT::T_ARRAY_SQUARE_BRACE_CLOSE]])) &&
                         // and it is not a `Foo::{bar}()` situation
                         !($nestToken->equals('}') && $nextNonWhitespaceNestToken->equals('(')) &&
                         // and it is not a `${"a"}->...` and `${"b{$foo}"}->...` situation
-                        !($nestToken->equals('}') && $tokens[$nestIndex - 1]->equalsAny(['"', "'", [T_CONSTANT_ENCAPSED_STRING]]))
+                        !($nestToken->equals('}') && $tokens[$nestIndex - 1]->equalsAny(['"', "'", [T_CONSTANT_ENCAPSED_STRING]])) &&
+                        // and next token is not a closing tag that would break heredoc/nowdoc syntax
+                        !($tokens[$nestIndex - 1]->isGivenKind(T_END_HEREDOC) && $nextNonWhitespaceNestToken->isGivenKind(T_CLOSE_TAG))
                     ) {
                         if (
                             (
@@ -435,7 +450,7 @@ class Foo
                                 $nextWhitespace = rtrim($nextToken->getContent(), " \t");
 
                                 if ('' !== $nextWhitespace) {
-                                    $nextWhitespace = preg_replace(
+                                    $nextWhitespace = Preg::replace(
                                         sprintf('/%s$/', $this->whitespacesConfig->getLineEnding()),
                                         '',
                                         $nextWhitespace,
@@ -447,7 +462,42 @@ class Foo
                             $whitespace = $nextWhitespace.$this->whitespacesConfig->getLineEnding().$indent;
 
                             if (!$nextNonWhitespaceNestToken->equals('}')) {
-                                $whitespace .= $this->whitespacesConfig->getIndent();
+                                $determineIsIndentableBlockContent = function ($contentIndex) use ($tokens) {
+                                    if (!$tokens[$contentIndex]->isComment()) {
+                                        return true;
+                                    }
+
+                                    if (!$tokens[$tokens->getPrevMeaningfulToken($contentIndex)]->equals(';')) {
+                                        return true;
+                                    }
+
+                                    $nextIndex = $tokens->getNextMeaningfulToken($contentIndex);
+
+                                    if (!$tokens[$nextIndex]->equals('}')) {
+                                        return true;
+                                    }
+
+                                    $nextNextIndex = $tokens->getNextMeaningfulToken($nextIndex);
+
+                                    if (null === $nextNextIndex) {
+                                        return true;
+                                    }
+
+                                    if ($tokens[$nextNextIndex]->equalsAny([
+                                        [T_ELSE],
+                                        [T_ELSEIF],
+                                        ',',
+                                    ])) {
+                                        return false;
+                                    }
+
+                                    return true;
+                                };
+
+                                // add extra indent only if current content is not a comment for content outside of current block
+                                if ($determineIsIndentableBlockContent($nestIndex + 2)) {
+                                    $whitespace .= $this->whitespacesConfig->getIndent();
+                                }
                             }
                         }
 
@@ -528,7 +578,7 @@ class Foo
                     if (
                         self::LINE_SAME === $this->configuration['position_after_functions_and_oop_constructs']
                         && (
-                            $token->isGivenKind([T_FUNCTION]) && !$tokensAnalyzer->isLambda($index)
+                            $token->isGivenKind(T_FUNCTION) && !$tokensAnalyzer->isLambda($index)
                             || $token->isGivenKind($classyTokens) && !$tokensAnalyzer->isAnonymousClass($index)
                         )
                         && !$tokens[$tokens->getPrevNonWhitespace($startBraceIndex)]->isComment()
@@ -545,7 +595,7 @@ class Foo
             }
 
             // reset loop limit due to collection change
-            $limit = count($tokens);
+            $limit = \count($tokens);
         }
     }
 
@@ -877,16 +927,16 @@ class Foo
             // do not indent inline comments used to comment out unused code
             if (
                 (0 === strpos($nextToken->getContent(), '//'.$this->whitespacesConfig->getIndent()) || '//' === $nextToken->getContent())
-                && $previousToken->isWhitespace() && 1 === preg_match('/\R$/', $previousToken->getContent())
+                && $previousToken->isWhitespace() && 1 === Preg::match('/\R$/', $previousToken->getContent())
             ) {
                 return;
             }
 
             $tokens[$nextTokenIndex] = new Token([
                 $nextToken->getId(),
-                preg_replace(
+                Preg::replace(
                     '/(\R)'.$this->detectIndent($tokens, $nextTokenIndex).'/',
-                    '$1'.preg_replace('/^.*\R([ \t]*)$/s', '$1', $whitespace),
+                    '$1'.Preg::replace('/^.*\R([ \t]*)$/s', '$1', $whitespace),
                     $nextToken->getContent()
                 ),
             ]);
@@ -993,8 +1043,8 @@ class Foo
 
         $newLines = 0;
         for ($i = min($siblingIndex, $index) + 1, $max = max($siblingIndex, $index); $i < $max; ++$i) {
-            if ($tokens[$i]->isWhitespace() && preg_match('/\R/', $tokens[$i]->getContent())) {
-                if (1 === $newLines || preg_match('/\R.*\R/', $tokens[$i]->getContent())) {
+            if ($tokens[$i]->isWhitespace() && Preg::match('/\R/', $tokens[$i]->getContent())) {
+                if (1 === $newLines || Preg::match('/\R.*\R/', $tokens[$i]->getContent())) {
                     return null;
                 }
 

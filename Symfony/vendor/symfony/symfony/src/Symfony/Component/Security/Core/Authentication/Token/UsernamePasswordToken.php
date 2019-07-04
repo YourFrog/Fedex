@@ -11,6 +11,8 @@
 
 namespace Symfony\Component\Security\Core\Authentication\Token;
 
+use Symfony\Component\Security\Core\Role\RoleInterface;
+
 /**
  * UsernamePasswordToken implements a username and password token.
  *
@@ -29,7 +31,7 @@ class UsernamePasswordToken extends AbstractToken
      *
      * @throws \InvalidArgumentException
      */
-    public function __construct($user, $credentials, $providerKey, array $roles = array())
+    public function __construct($user, $credentials, $providerKey, array $roles = [])
     {
         parent::__construct($roles);
 
@@ -41,7 +43,7 @@ class UsernamePasswordToken extends AbstractToken
         $this->credentials = $credentials;
         $this->providerKey = $providerKey;
 
-        parent::setAuthenticated(count($roles) > 0);
+        parent::setAuthenticated(\count($roles) > 0);
     }
 
     /**
@@ -89,7 +91,9 @@ class UsernamePasswordToken extends AbstractToken
      */
     public function serialize()
     {
-        return serialize(array($this->credentials, $this->providerKey, parent::serialize()));
+        $serialized = [$this->credentials, $this->providerKey, parent::serialize(true)];
+
+        return $this->doSerialize($serialized, \func_num_args() ? func_get_arg(0) : null);
     }
 
     /**
@@ -97,7 +101,7 @@ class UsernamePasswordToken extends AbstractToken
      */
     public function unserialize($serialized)
     {
-        list($this->credentials, $this->providerKey, $parentStr) = unserialize($serialized);
+        list($this->credentials, $this->providerKey, $parentStr) = \is_array($serialized) ? $serialized : unserialize($serialized);
         parent::unserialize($parentStr);
     }
 }
