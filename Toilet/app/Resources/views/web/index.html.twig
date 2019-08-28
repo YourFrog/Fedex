@@ -1,0 +1,50 @@
+{% extends 'base.html.twig' %}
+
+{% block body %}
+    <!-- The core Firebase JS SDK is always required and must be listed first -->
+    <script src="https://www.gstatic.com/firebasejs/6.3.4/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/6.3.4/firebase-messaging.js"></script>
+
+    <!-- TODO: Add SDKs for Firebase products that you want to use
+         https://firebase.google.com/docs/web/setup#config-web-app -->
+
+    <script>
+        // Initialize Firebase
+        firebase.initializeApp({
+            apiKey: "AIzaSyAMiAtsRrZGcU1H63Ep2FmKL72S41fAyEE",
+            authDomain: "toilet-557d1.firebaseapp.com",
+            databaseURL: "https://toilet-557d1.firebaseio.com",
+            projectId: "toilet-557d1",
+            storageBucket: "",
+            messagingSenderId: "514920366615",
+            appId: "1:514920366615:web:b4335ed5e112cb1d"
+
+        });
+
+        messaging = firebase.messaging();
+        messaging.usePublicVapidKey("BLGPkE6Vxss6aEi14U-FCHBvEon5U5xW67L7YN4T6XArlvSh0-xpTF6D5YemrGTSHPVBMixE9paoYXlFgp7zpaE");
+
+        messaging.requestPermission().then(function() {
+            console.log("Permission granted!");
+            messaging.getToken().then((currentToken) => {
+                console.log(currentToken);
+        }).catch((err) => {
+                console.log('An error occurred while retrieving token. ', err);
+            showToken('Error retrieving Instance ID token. ', err);
+            setTokenSentToServer(false);
+        });
+        }).catch(function() {
+            console.log("Permission denied!");
+        });
+
+        messaging.onMessage(function(payload) {
+            console.log('dupa');
+        });
+//
+//        messaging.setBackgroundMessageHandler(function(payload) {
+//            console.log('noga');
+//        });
+
+        console.log(messaging);
+    </script>
+{% endblock %}

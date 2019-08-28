@@ -45,7 +45,10 @@
         "phing/phing": "^2.0",
         "knplabs/knp-menu-bundle": "^2.0",
         "whiteoctober/swiftmailerdbbundle": "^1.0",
-        "friendsofsymfony/message-bundle": "^2.0"
+        "friendsofsymfony/message-bundle": "^2.0",
+        "hwi/oauth-bundle": "^0.6.3",
+        "php-http/guzzle6-adapter": "^1.1",
+        "php-http/httplug-bundle": "^1.15"
     },
     "require-dev": {
         "sensio/generator-bundle": "^3.0",
